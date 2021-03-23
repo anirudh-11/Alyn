@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from skew_detect import SkewDetect
 from skimage import io
 from skimage.transform import rotate
+import glob
+import os
 
 
 class Deskew:
@@ -80,11 +82,30 @@ if __name__ == '__main__':
         dest='r_angle',
         help='Rotate the image to desired axis',
         type=int)
+    parser.add_option(
+        '-f', '--file',
+        default= None,
+        dest='file',
+        help='Given Input and Output is Directory or not')
     options, args = parser.parse_args()
-    deskew_obj = Deskew(
-        options.input_file,
-        options.display_image,
-        options.output_file,
-        options.r_angle)
+    if(options.file == "Yes"):
+      path = glob.glob(options.input_file + "/*.jpg")
+      path.extend(glob.glob(options.input_file + "/*.jpeg"))
+      path.extend(glob.glob(options.input_file + "/*.png"))
+      for inp_file in path:
+        f_name = inp_file.split("/")[-1]
+        out_file = os.path.join(options.output_file, f_name)
+        deskew_obj = Deskew(
+          inp_file,
+          options.display_image,
+          out_file,
+          options.r_angle)
+        deskew_obj.run()
+    else:
+      deskew_obj = Deskew(
+          options.input_file,
+          options.display_image,
+          options.output_file,
+          options.r_angle)
 
-    deskew_obj.run()
+      deskew_obj.run()
