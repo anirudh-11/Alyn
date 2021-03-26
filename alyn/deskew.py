@@ -20,9 +20,13 @@ class Deskew:
         self.r_angle = r_angle
         self.skew_obj = SkewDetect(self.input_file)
 
-    def deskew(self):
+    def deskew(self, input_file = None):
 
-        img = io.imread(self.input_file)
+        if(input_file):
+          img = io.imread(input_file)
+        else:
+          img = io.imread(self.input_file)
+
         res = self.skew_obj.process_single_file()
         angle = res['Estimated Angle']
 
@@ -39,11 +43,18 @@ class Deskew:
             self.display(rotated)
 
         if self.output_file:
-            self.saveImage(rotated*255)
+            self.saveTemp(rotated*255)
+        return(res, rotated*255)
 
     def saveImage(self, img):
         path = self.skew_obj.check_path(self.output_file)
+        os.remove("temp.jpg")
         io.imsave(path, img.astype(np.uint8))
+
+    def saveTemp(self, img):
+      path = "temp.jpg"
+      io.imsave(path, img.astype(np.uint8))
+
 
     def display(self, img):
 
@@ -53,9 +64,15 @@ class Deskew:
     def run(self):
 
         if self.input_file:
-            self.deskew()
-
-
+            res_p, rotated = self.deskew()
+            res_c, rotated = self.deskew(input_file = "temp.jpg")
+            count = 1
+            while(res_p["Estimated Angle"] != res_c["Estimated Angle"]):
+              res_p = res_c
+              res_c, rotated = self.deskew(input_file = "temp.jpg")
+              count += 1
+              print(count)
+            self.saveImage(rotated)
 if __name__ == '__main__':
 
     parser = optparse.OptionParser()
